@@ -1,0 +1,96 @@
+---
+title: "prueba"
+author: "Econometría Básica"
+date: '2022-10-26'
+output: word_document
+---
+
+```{r configuracion del documento, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r carga de librerias}
+library(readxl)
+library(ggplot2)
+library(magrittr)
+library(flextable)
+source("funciones_econometria_basica.R")
+```
+
+```{r, carga de archivo de datos}
+cellphone <- read_excel("Cellphone.xlsx", 
+    col_types = c("skip", "numeric", "numeric", 
+        "skip", "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric"))
+```
+
+
+## primer titulo
+
+## analisis exploratorio
+
+en esta sección analizaremos las variables que vamos a incluir en el modelo
+
+### distribución de la variable precio
+
+```{r}
+#analisisExploratorio <- exploratorio(cellphone, ram, Price)
+cellphone |> ggplot(aes(x = Price)) + geom_histogram()
+
+```
+
+
+\newpage
+
+## Regresión Lineal
+
+$$\hat{y_i} = \beta_0 + X_i*\beta_1 + e_i$$
+
+$$\hat{\text{precio celular}}_i=1321,285 + 0,315*\hat{batería}_i + e_i$$
+
+```{r modelo de regresion}
+modelo <- lm(Price ~ battery, data = cellphone)
+modelo |> as_flextable()
+
+```
+
+
+el intercepto tiene un valor de `r round(modelo$coefficients[1], 2)` y el $\beta_1$ tiene un valor de `r round(modelo$coefficients[2], 2)`
+\n
+
+\newpage
+## supuestos del modelo
+
+### distribución normal de los residuos
+
+$$H_0: \text{Los residuos tienen distribucion normal}$$
+$$H_1:\text{Los residuos NO tienen distribucion normal} $$
+
+```{r}
+nortest::lillie.test(modelo$residuals) |> as_flextable()
+```
+
+### homocedasticidad de los residuos
+
+$$H_0: \text{Los residuos son homocedasticos}$$
+$$H_1: \text{Los residuos son heterocedasticos}$$
+
+```{r supuesto de homocedasticidad}
+lmtest::bptest(modelo) |> as_flextable()
+```
+
+
+### autocorrelación de los residuos
+
+$$H_0: \text{Los residuos no tienen autocorrelacion}$$
+$$H_1: \text{Los residuos si tienen autocorrelacion}$$
+
+```{r supuesto autocorrelacion de los residuos}
+lmtest::dwtest(modelo) |> as_flextable()
+
+```
+
+en este supuesto ...
